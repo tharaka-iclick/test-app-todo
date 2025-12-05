@@ -22,6 +22,14 @@ import 'package:test_todo_app/modules/todo_home/data/repositories/todo_repositor
     as _i866;
 import 'package:test_todo_app/modules/todo_home/domain/repositories/todo_repository.dart'
     as _i506;
+import 'package:test_todo_app/modules/todo_home/domain/usecases/add_todo_usecase.dart'
+    as _i788;
+import 'package:test_todo_app/modules/todo_home/domain/usecases/delete_todo_usecase.dart'
+    as _i275;
+import 'package:test_todo_app/modules/todo_home/domain/usecases/get_todo_usecase.dart'
+    as _i221;
+import 'package:test_todo_app/modules/todo_home/domain/usecases/update_todo_usecase.dart'
+    as _i218;
 
 const String _dev = 'dev';
 
@@ -45,6 +53,18 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i866.TodoRepositoryImpl(
         remoteDataSource: gh<_i105.TodoRemoteDataSource>(),
       ),
+    );
+    gh.factory<_i788.AddTodoUsecase>(
+      () => _i788.AddTodoUsecase(repository: gh<_i506.TodoRepository>()),
+    );
+    gh.factory<_i275.DeleteTodoUsecase>(
+      () => _i275.DeleteTodoUsecase(repository: gh<_i506.TodoRepository>()),
+    );
+    gh.factory<_i221.GetTodoUsecase>(
+      () => _i221.GetTodoUsecase(repository: gh<_i506.TodoRepository>()),
+    );
+    gh.factory<_i218.UpdateTodoUsecase>(
+      () => _i218.UpdateTodoUsecase(repository: gh<_i506.TodoRepository>()),
     );
     return this;
   }
