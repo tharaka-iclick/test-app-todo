@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:test_todo_app/core/common_widgets/common_alert_dialog_box.dart';
 import 'package:test_todo_app/core/theme/dimensions.dart';
 import 'package:test_todo_app/core/theme/skin.dart';
+import 'package:test_todo_app/modules/auth/presentation/bloc/auth_bloc.dart';
+import 'package:test_todo_app/modules/auth/presentation/pages/login_page.dart';
 import 'package:test_todo_app/modules/todo_home/domain/entities/todo.dart';
 import 'package:test_todo_app/modules/todo_home/presentation/bloc/todo_bloc.dart';
 import 'package:test_todo_app/modules/todo_home/presentation/widgets/add_button.dart';
@@ -198,39 +200,95 @@ class _TodoHomeState extends State<TodoHome> {
     );
   }
 
+  void _showSignOutDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => CommonDialog(
+        title: 'Sign Out',
+        message: const Text('Are you sure you want to sign out?'),
+        confirmText: 'Sign Out',
+        cancelText: 'Cancel',
+        confirmButtonColor: Colors.red,
+        onPressed: () {
+          Navigator.of(dialogContext).pop();
+          context.read<AuthBloc>().add(AuthLogout());
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<TodoBloc, TodoState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is TodoFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${state.failure.message}'),
-              backgroundColor: Colors.red,
-            ),
+        if (state is AuthInitial) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
           );
         }
       },
-      builder: (context, state) {
-        return Padding(
-          padding: const EdgeInsets.all(AppSimensions.paddingMedium),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  bottom: AppSimensions.paddingMedium,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('My Todo App'),
+          backgroundColor: Skin.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                if (value == 'signout') {
+                  _showSignOutDialog();
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem<String>(
+                  value: 'signout',
+                  child: Row(children: [SizedBox(width: 8), Text('Sign Out')]),
                 ),
-                child: AddButton(
-                  buttonText: 'Add Todo',
-                  onPressed: () => _showAddTodoDialog(context),
+              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                context.read<TodoBloc>().add(TodoFetchAll());
+              },
+            ),
+          ],
+        ),
+        body: BlocConsumer<TodoBloc, TodoState>(
+          listener: (context, state) {
+            if (state is TodoFailure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error: ${state.failure.message}'),
+                  backgroundColor: Colors.red,
                 ),
-              ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(AppSimensions.paddingMedium),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: AppSimensions.paddingMedium,
+                    ),
+                    child: AddButton(
+                      buttonText: 'Add Todo',
+                      onPressed: () => _showAddTodoDialog(context),
+                    ),
+                  ),
 
-              Expanded(child: _buildTodoList(state)),
-            ],
-          ),
-        );
-      },
+                  Expanded(child: _buildTodoList(state)),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -320,4 +378,5 @@ class _TodoHomeState extends State<TodoHome> {
 
     return const Center(child: Text('Welcome! Tap "Add Todo" to get started.'));
   }
+  
 }
